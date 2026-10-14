@@ -1,0 +1,12 @@
+/bin/
+/obj/
+/tests/bin/
+/tests/obj*/
+/tests/run-*/
+*.user
+*.suo
+*.tmp
+*.log
+*.dat
+.vs/
+__pycache__/
