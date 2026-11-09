@@ -55,6 +55,26 @@ Read the bound variable directly during gameplay. To queue a change yourself,
 use `menu.Set(id, value)`; it applies on the next game tick.
 If your mod changes a variable directly, publish it to update the menu too.
 
+## Presets
+
+Players can save and load presets for your mod with no extra code. To ship
+presets with your mod, put `.dat` files anywhere in your mod's `modloader`
+folder, for example `modloader/YourMod/presets/Cinematic.dat`:
+
+```text
+SLEEKCONFIG-PRESET	1
+mod	yourname.yourmod
+name	Cinematic
+set	strength	3	0.75
+set	enabled	1	1
+```
+
+Fields are separated by tabs. `set` rows use the setting ID, the `ScType`
+number and the value as written in `SleekConfig/<mod-id>.dat` (text values
+are hex-encoded UTF-8). The easiest way to make one is **Save preset** in the
+menu, then copy the file from `presets/<mod-id>/`. Rows for unknown IDs, wrong
+types or out-of-range values are skipped when loading.
+
 ## Icons
 
 Place a PNG named after your mod ID in `icons` beside `SleekConfig.asi`:

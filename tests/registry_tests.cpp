@@ -11,6 +11,7 @@
 static int calls=0;
 static int saves=0;
 void BindingTests();
+void PresetTests();
 static int SC_CALL OnChange(void*,const char*,const ScValue* v) {
     ++calls;return v->integer!=3;
 }
@@ -222,6 +223,7 @@ int main() {
     RemoveDirectoryA(DataDirectory().c_str());
     DeleteFileA("legacy_test.ini");
     BindingTests();
+    PresetTests();
     RemoveDirectoryA(DataDirectory().c_str());
     return 0;
 }

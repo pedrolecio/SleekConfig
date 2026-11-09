@@ -29,7 +29,7 @@
     <Link><LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration><EnableCOMDATFolding>true</EnableCOMDATFolding><OptimizeReferences>true</OptimizeReferences><GenerateDebugInformation>false</GenerateDebugInformation></Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\Registry.cpp" /><ClCompile Include="source\Persistence.cpp" /><ClCompile Include="source\Menu.cpp" /><ClCompile Include="source\MenuSettings.cpp" /><ClCompile Include="source\Icon.cpp" /><ClCompile Include="source\Main.cpp" /><ClCompile Include="source\CleoBridge.cpp" />
+    <ClCompile Include="source\Registry.cpp" /><ClCompile Include="source\Persistence.cpp" /><ClCompile Include="source\Presets.cpp" /><ClCompile Include="source\Menu.cpp" /><ClCompile Include="source\MenuSettings.cpp" /><ClCompile Include="source\Icon.cpp" /><ClCompile Include="source\Main.cpp" /><ClCompile Include="source\CleoBridge.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" /><ClCompile Include="vendor\imgui\imgui_draw.cpp" /><ClCompile Include="vendor\imgui\imgui_tables.cpp" /><ClCompile Include="vendor\imgui\imgui_widgets.cpp" /><ClCompile Include="vendor\imgui\backends\imgui_impl_dx9.cpp" /><ClCompile Include="vendor\imgui\backends\imgui_impl_win32.cpp" />
   </ItemGroup>
   <ItemGroup><ClInclude Include="source\Version.h" /><ResourceCompile Include="source\Version.rc" /></ItemGroup>

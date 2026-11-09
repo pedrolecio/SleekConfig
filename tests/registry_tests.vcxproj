@@ -7,6 +7,6 @@
 <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
 <PropertyGroup><OutDir>$(ProjectDir)bin\</OutDir><IntDir>$(ProjectDir)obj\</IntDir></PropertyGroup>
 <ItemDefinitionGroup><ClCompile><WarningLevel>Level3</WarningLevel><PrecompiledHeader>NotUsing</PrecompiledHeader><LanguageStandard>stdcpp17</LanguageStandard><RuntimeLibrary>MultiThreaded</RuntimeLibrary><Optimization>Full</Optimization><PreprocessorDefinitions>SC_TEST;NOMINMAX;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalIncludeDirectories>$(ProjectDir)..\source;$(ProjectDir)..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories></ClCompile></ItemDefinitionGroup>
-<ItemGroup><ClCompile Include="registry_tests.cpp" /><ClCompile Include="binding_tests.cpp" /><ClCompile Include="..\source\Registry.cpp" /><ClCompile Include="..\source\Persistence.cpp" /><ClCompile Include="..\examples\WeaponIniAdapter.cpp" /></ItemGroup>
+<ItemGroup><ClCompile Include="registry_tests.cpp" /><ClCompile Include="binding_tests.cpp" /><ClCompile Include="presets_tests.cpp" /><ClCompile Include="..\source\Presets.cpp" /><ClCompile Include="..\source\Registry.cpp" /><ClCompile Include="..\source\Persistence.cpp" /><ClCompile Include="..\examples\WeaponIniAdapter.cpp" /></ItemGroup>
 <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

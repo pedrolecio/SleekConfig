@@ -303,6 +303,18 @@ std::string LegacyDataPath() {
         directory.substr(0,slash+1)+"SleekConfig.dat";
 #endif
 }
+std::string AsiDirectory() {
+#ifdef SC_TEST
+    return {};
+#else
+    const auto directory=DataDirectory();
+    const auto slash=directory.find_last_of("\\/");
+    return slash==std::string::npos?std::string{}:directory.substr(0,slash+1);
+#endif
+}
+std::string EncodeValue(const ScValue& value) {return Encode(value);}
+bool DecodeValue(ScValue& value,const std::string& text) {return Decode(value,text);}
+bool PersistedType(uint32_t type) {return Persisted(type);}
 std::string DataPath(const std::string& modId) {
     if (modId.empty() || modId.size()>96 ||
         modId.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789._-")!=std::string::npos)

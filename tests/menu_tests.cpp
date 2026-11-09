@@ -15,6 +15,12 @@ struct MenuTestAccess {
         menu.keyCaptureMod_=mod;menu.keyCaptureId_=id;
     }
     static bool Capturing(const Menu& menu) {return menu.keyCaptureMod_!=0;}
+    static ImRect Slider(const Menu& menu) {
+        return ImRect(menu.sliderRect_[0],menu.sliderRect_[1],menu.sliderRect_[2],menu.sliderRect_[3]);
+    }
+    static void Speeds(Menu& menu,float normal,float fine) {
+        menu.dragSpeed_=normal;menu.fineDragSpeed_=fine;
+    }
 };
 }
 namespace {
@@ -48,7 +54,11 @@ ImVec2 ResetPosition() {
     assert(bounds.Max.x<=600 && bounds.Max.y<=360);
     return ImVec2(bounds.Max.x-size/2,bounds.Max.y-size/2);
 }
-ImVec2 SliderPosition() {return ImVec2(bounds.Min.x+80,bounds.Max.y-ImGui::GetFrameHeight()/2);}
+// Rows are label | control | reset; aim inside the control, left of the reset column.
+ImVec2 SliderPosition() {
+    const float size=ImGui::GetFrameHeight();
+    return ImVec2(bounds.Max.x-size-ImGui::GetStyle().ItemSpacing.x-40,bounds.Max.y-size/2);
+}
 void Click(ImVec2 position) {
     auto& io=ImGui::GetIO();io.AddMousePosEvent(position.x,position.y);Frame(0.6f);
     io.AddMouseButtonEvent(0,true);Frame();io.AddMouseButtonEvent(0,false);Frame();
@@ -153,6 +163,79 @@ int main() {
     // Text comparison ignores unused bytes after the NUL terminator.
     v.text[SC_TEXT_CAP-1]='x';Set("text",v);
     const auto afterText=changes;ClickReset();assert(changes==afterText);
+
+    // Slider steps follow each range; display precision follows the fine step.
+    {
+        sc::Setting probe{};probe.type=SC_FLOAT;probe.minimum=0;probe.maximum=1;
+        auto scale=sc::ScaleFor(probe);
+        assert(std::abs(scale.step-0.01)<1e-12 && std::abs(scale.fine-0.001)<1e-12 &&
+            scale.decimals==3);
+        probe.minimum=-2000;probe.maximum=2000;scale=sc::ScaleFor(probe);
+        assert(scale.step==10 && scale.fine==1 && scale.coarse==100 && scale.decimals==0);
+        probe.minimum=0.03;probe.maximum=0.14;scale=sc::ScaleFor(probe);
+        assert(std::abs(scale.step-0.001)<1e-12 && scale.decimals==4);
+        probe.type=SC_INT;probe.minimum=0;probe.maximum=100;scale=sc::ScaleFor(probe);
+        assert(scale.step==1 && scale.fine==1 && scale.coarse==10 && scale.decimals==0);
+        probe.type=SC_FLOAT;probe.minimum=0;probe.maximum=1;probe.step=0.25;
+        scale=sc::ScaleFor(probe);
+        assert(scale.step==0.25 && scale.fine==0.25 && scale.decimals==2);
+        assert(sc::QuantizeSlider(0.3,probe,scale)==0.25);
+    }
+    auto offset=Integer("offset",SC_FLOAT);offset.minimum=-2000;offset.maximum=2000;offset.step=0;
+    offset.default_value={};offset.default_value.type=SC_FLOAT;offset.default_value.real=0;
+    float offsetValue=-1;
+    binding={sizeof(binding),SC_STORAGE_FLOAT,&offsetValue,sizeof(offsetValue)};
+    assert(r.Add(mod,&offset,&binding)==SC_OK && offsetValue==0);currentSetting="offset";
+    Frame();
+    const auto rect=sc::MenuTestAccess::Slider(menu);
+    const float grabWidth=std::max(ImGui::GetStyle().GrabMinSize,10.0f);
+    const float usable=rect.GetWidth()-grabWidth;
+    const ImVec2 grab((rect.Min.x+rect.Max.x)*0.5f,(rect.Min.y+rect.Max.y)*0.5f);
+    auto drag=[&](float from,float dx,bool shift) {
+        io.AddMousePosEvent(from,grab.y);
+        if (shift) io.AddKeyEvent(ImGuiMod_Shift,true);
+        Frame(0.6f);io.AddMouseButtonEvent(0,true);Frame();
+        io.AddMousePosEvent(from+dx,grab.y);Frame();
+        io.AddMouseButtonEvent(0,false);Frame();
+        if (shift) io.AddKeyEvent(ImGuiMod_Shift,false);
+        Frame();
+    };
+    auto zero=[&] {v=offset.default_value;v.real=0;Set("offset",v);Frame();assert(offsetValue==0);};
+    // Pressing the grab does not move it; the grab then follows the mouse.
+    drag(grab.x,2,false);assert(offsetValue==0);
+    drag(grab.x,40,false);
+    const float normal=offsetValue;
+    assert(std::abs(normal-std::round(40/usable*4000))<=1 && normal==std::round(normal));
+    zero();
+    // Shift drags ten times finer by default.
+    drag(grab.x,40,true);
+    assert(offsetValue>0 && std::abs(offsetValue-std::round(4/usable*4000))<=1);
+    zero();
+    // The drag speed setting lowers sensitivity without Shift too.
+    sc::MenuTestAccess::Speeds(menu,0.5f,0.1f);
+    drag(grab.x,40,false);assert(std::abs(offsetValue-std::round(20/usable*4000))<=1);
+    sc::MenuTestAccess::Speeds(menu,1.0f,0.1f);
+    zero();
+    // Pressing the track jumps there.
+    drag(grab.x-usable*0.25f,0,false);assert(std::abs(offsetValue+1000)<=1);
+    zero();
+    // After a click the slider keeps focus: arrows step 10, Shift 1, Ctrl 100.
+    drag(grab.x,0,false);assert(offsetValue==0);
+    auto press=[&](ImGuiKey key,ImGuiKey modifier) {
+        if (modifier!=ImGuiKey_None) io.AddKeyEvent(modifier,true);
+        io.AddKeyEvent(key,true);Frame();io.AddKeyEvent(key,false);Frame();
+        if (modifier!=ImGuiKey_None) io.AddKeyEvent(modifier,false);
+        Frame();
+    };
+    press(ImGuiKey_RightArrow,ImGuiKey_None);assert(offsetValue==10);
+    press(ImGuiKey_RightArrow,ImGuiMod_Shift);assert(offsetValue==11);
+    press(ImGuiKey_LeftArrow,ImGuiMod_Ctrl);assert(offsetValue==-89);
+    // The wheel nudges the focused slider under the mouse instead of scrolling.
+    io.AddMousePosEvent(grab.x,grab.y);Frame();Frame();
+    io.AddMouseWheelEvent(0,1);Frame();Frame();assert(offsetValue==-79);
+    io.AddKeyEvent(ImGuiMod_Shift,true);Frame();
+    io.AddMouseWheelEvent(0,-1);Frame();Frame();assert(offsetValue==-80);
+    io.AddKeyEvent(ImGuiMod_Shift,false);Frame();
 
     // The menu's single accent color resets its three channels, not background.
     for (const auto id:{"accent_red","accent_green","accent_blue","background"}) {
